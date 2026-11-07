@@ -158,21 +158,22 @@ def crear_reserva(reserva_in: ReservaCreate, db: Session = Depends(get_db)):
             InventarioSucursal.variante_id == item.variante_id
         ).with_for_update().first()
 
-        disponible = inv.stock_disponible if inv else 0
+        disponible = inv.stock_disponible if (inv and inv.stock_disponible is not None) else (max(0, (inv.stock_fisico or 0) - (inv.stock_reservado or 0)) if inv else 0)
         if not inv or disponible < item.cantidad:
-            # Buscar sucursales alternativas
-            todas_otras = db.query(InventarioSucursal).filter(
+            # Buscar sucursales alternativas exclusivamente dentro de la misma empresa (Tenant)
+            todas_otras = db.query(InventarioSucursal).join(Sucursal, InventarioSucursal.sucursal_id == Sucursal.id).filter(
                 InventarioSucursal.variante_id == item.variante_id,
-                InventarioSucursal.sucursal_id != reserva_in.sucursal_id
+                InventarioSucursal.sucursal_id != reserva_in.sucursal_id,
+                Sucursal.empresa_id == sucursal.empresa_id
             ).all()
-            otras = [o for o in todas_otras if o.stock_disponible >= item.cantidad]
-            sug = [f"Sucursal ID {o.sucursal_id} ({o.stock_disponible} disponibles)" for o in otras]
+            otras = [o for o in todas_otras if (o.stock_disponible if o.stock_disponible is not None else max(0, (o.stock_fisico or 0) - (o.stock_reservado or 0))) >= item.cantidad]
+            sug = [f"{o.sucursal.nombre} ({o.stock_disponible if o.stock_disponible is not None else max(0, (o.stock_fisico or 0) - (o.stock_reservado or 0))} disponibles)" for o in otras]
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Excepción A1: Stock insuficiente en {sucursal.nombre}. Disponibles: {disponible}. Sugerencias: {', '.join(sug) if sug else 'Sin stock en otras tiendas'}."
+                detail=f"Excepción A1: Stock insuficiente en {sucursal.nombre}. Disponibles: {disponible}. Sugerencias: {', '.join(sug) if sug else 'Sin stock en otras tiendas de la empresa'}."
             )
 
-        inv.stock_reservado += item.cantidad
+        inv.stock_reservado = (inv.stock_reservado or 0) + item.cantidad
 
     # 3. Crear Reserva
     ahora = datetime.now()
@@ -182,7 +183,8 @@ def crear_reserva(reserva_in: ReservaCreate, db: Session = Depends(get_db)):
         hora_estimada=reserva_in.hora_estimada or "18:00",
         estado="PENDIENTE",
         cliente_id=cliente.ci,
-        sucursal_id=reserva_in.sucursal_id
+        sucursal_id=reserva_in.sucursal_id,
+        empresa_id=sucursal.empresa_id or 1
     )
     db.add(nueva_reserva)
     db.flush()
@@ -196,6 +198,7 @@ def crear_reserva(reserva_in: ReservaCreate, db: Session = Depends(get_db)):
             cantidad=item.cantidad,
             precio_unitario=precio_un
         )
+        db.add(det)
     db.commit()
 
     try:
