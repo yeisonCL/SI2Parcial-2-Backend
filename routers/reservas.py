@@ -101,9 +101,10 @@ def crear_reserva(reserva_in: ReservaCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Sucursal no encontrada.")
 
     cliente_ci = str(reserva_in.cliente_id).strip() if reserva_in.cliente_id else "admin"
+    alias_dismac = "adminDismac" if "dismac" in cliente_ci.lower() else cliente_ci
 
-    # Buscar primero si el cliente ya existe con ese código directamente (ej: 'admin', '2001')
-    cliente = db.query(Cliente).filter(Cliente.ci == cliente_ci).first()
+    # Buscar primero si el cliente ya existe con ese código directamente (ej: 'admin', 'adminDismac')
+    cliente = db.query(Cliente).filter(or_(Cliente.ci == cliente_ci, Cliente.ci == alias_dismac)).first()
 
     if not cliente:
         # Buscar usuario correspondiente
