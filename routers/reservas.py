@@ -5,6 +5,7 @@ Alineado fielmente con RESERVA, DETALLE_RESERVA, CLIENTE y SUCURSAL del Diagrama
 from datetime import date, datetime, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
 from database import get_db
@@ -401,11 +402,28 @@ def listar_mis_reservas(cliente_ci: Optional[str] = Query(None), db: Session = D
     )
     if cliente_ci and str(cliente_ci).strip() not in ["null", "undefined", "0", ""]:
         ci_str = str(cliente_ci).strip()
-        u = db.query(Usuario).filter(Usuario.nombre_usuario.ilike(ci_str)).first()
+        alias_dismac = "adminDismac" if "dismac" in ci_str.lower() else ci_str
+        ci_alt = ci_str.replace("administrador", "admin") if "administrador" in ci_str.lower() else ci_str.replace("admin", "administrador")
+
+        u = db.query(Usuario).filter(
+            or_(
+                Usuario.nombre_usuario.ilike(ci_str),
+                Usuario.nombre_usuario.ilike(alias_dismac),
+                Usuario.nombre_usuario.ilike(ci_alt)
+            )
+        ).first()
         if not u and ci_str.isdigit():
             u = db.query(Usuario).filter(Usuario.id == int(ci_str)).first()
         ci_target = u.persona_ci if (u and u.persona_ci) else ci_str
-        query = query.filter((Reserva.cliente_id == ci_target) | (Reserva.cliente_id == ci_str))
+        query = query.filter(
+            or_(
+                Reserva.cliente_id == ci_target,
+                Reserva.cliente_id == ci_str,
+                Reserva.cliente_id.ilike(alias_dismac),
+                Reserva.cliente_id.ilike(f"%{ci_alt}%"),
+                Reserva.cliente_id.ilike(f"%{ci_str}%")
+            )
+        )
     reservas = query.order_by(Reserva.id.desc()).all()
     return [_formatear_reserva(r) for r in reservas]
 
@@ -426,11 +444,28 @@ def listar_reservas(cliente_ci: Optional[str] = Query(None), db: Session = Depen
     )
     if cliente_ci and str(cliente_ci).strip() not in ["null", "undefined", "0", ""]:
         ci_str = str(cliente_ci).strip()
-        u = db.query(Usuario).filter(Usuario.nombre_usuario.ilike(ci_str)).first()
+        alias_dismac = "adminDismac" if "dismac" in ci_str.lower() else ci_str
+        ci_alt = ci_str.replace("administrador", "admin") if "administrador" in ci_str.lower() else ci_str.replace("admin", "administrador")
+
+        u = db.query(Usuario).filter(
+            or_(
+                Usuario.nombre_usuario.ilike(ci_str),
+                Usuario.nombre_usuario.ilike(alias_dismac),
+                Usuario.nombre_usuario.ilike(ci_alt)
+            )
+        ).first()
         if not u and ci_str.isdigit():
             u = db.query(Usuario).filter(Usuario.id == int(ci_str)).first()
         ci_target = u.persona_ci if (u and u.persona_ci) else ci_str
-        query = query.filter((Reserva.cliente_id == ci_target) | (Reserva.cliente_id == ci_str))
+        query = query.filter(
+            or_(
+                Reserva.cliente_id == ci_target,
+                Reserva.cliente_id == ci_str,
+                Reserva.cliente_id.ilike(alias_dismac),
+                Reserva.cliente_id.ilike(f"%{ci_alt}%"),
+                Reserva.cliente_id.ilike(f"%{ci_str}%")
+            )
+        )
 
     reservas = query.order_by(Reserva.id.desc()).all()
     return [_formatear_reserva(r) for r in reservas]
