@@ -1,0 +1,12 @@
+{
+  "activo": true,
+  "hora": "01:00",
+  "frecuencia": "diario",
+  "dia_semana": "todos",
+  "max_retencion": 30,
+  "plan_activo": "PROFESIONAL",
+  "tipo_programacion": "CRON_AUTOMATICO_01_00_AM",
+  "ultimo_backup_automatico": "2026-11-07 01:00:00",
+  "proxima_ejecucion": "2026-11-08T01:00:00",
+  "rotacion_habilitada": true
+}
