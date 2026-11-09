@@ -6,3 +6,9 @@
   - Reingreso de prenda a inventario de almacén (+1 stock).
   - Cálculo automático de diferencia económica y notificación PUSH con pasarela Stripe.
   - Estado: Implementado y probado satisfactoriamente.
+
+- [x] **CU-14: Sincronización Automática de Datos Locales con el Servidor Central**
+  - Despacho de transacciones offline por lote (/api/v1/sync/batch).
+  - Idempotencia garantizada por UUIDv4 y resolución de colisiones por timestamp.
+  - Vaciado de cola pending_sync al restablecer enlace de red.
+  - Estado: Implementado y probado satisfactoriamente.
