@@ -18,3 +18,9 @@
   - Modelo de machine learning (Scikit-Learn) para predicción de series temporales de demanda.
   - Segmentación de clientes RFM (Recencia, Frecuencia, Monto) con clustering.
   - Estado: Implementado y probado satisfactoriamente.
+
+- [x] **CU-18: Respaldo y Restauración Automatizada de la Base de Datos**
+  - Generación de respaldos completos e incrementales de esquemas multitenant PostgreSQL.
+  - Cifrado seguro AES-256 y almacenamiento estructurado de snapshots.
+  - Verificación de integridad con hashes SHA-256 y utilitario de restauración en Sandbox.
+  - Estado: Implementado y probado satisfactoriamente.
