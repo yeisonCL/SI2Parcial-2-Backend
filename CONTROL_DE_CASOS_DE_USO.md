@@ -12,3 +12,9 @@
   - Idempotencia garantizada por UUIDv4 y resolución de colisiones por timestamp.
   - Vaciado de cola pending_sync al restablecer enlace de red.
   - Estado: Implementado y probado satisfactoriamente.
+
+- [x] **CU-16: Tablero de Control de KPIs y Predicción ML de Demanda**
+  - Métricas ejecutivas en tiempo real: ingresos, rotación de inventario y margen bruto.
+  - Modelo de machine learning (Scikit-Learn) para predicción de series temporales de demanda.
+  - Segmentación de clientes RFM (Recencia, Frecuencia, Monto) con clustering.
+  - Estado: Implementado y probado satisfactoriamente.
